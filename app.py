@@ -186,30 +186,59 @@ st.markdown(
 				/* Royal Flush Jackpot styling */
 				.jackpot {
 					text-align: center;
-					margin: 20px 0;
-					padding: 20px;
+					margin: 15px 0;
+					padding: 15px;
 					background: linear-gradient(180deg, #003366, #004080);
-					border-radius: 16px;
-					box-shadow: 0 8px 24px rgba(0,0,0,0.6), 0 0 12px rgba(0,85,170,0.4);
-					border: 2px solid transparent;
-					background-clip: padding-box;
+					border-radius: 12px;
+					box-shadow: 0 6px 18px rgba(0,0,0,0.6), 0 0 10px rgba(0,85,170,0.4), inset 0 1px 0 rgba(255,255,255,0.1);
+					border: 2px solid #FFD700;
+					position: relative;
 					animation: jackpotGlow 2s ease-in-out infinite alternate;
+					overflow: hidden;
+				}
+				.jackpot::before {
+					content: '♠ ♥ ♦ ♣';
+					position: absolute;
+					top: 5px;
+					left: 10px;
+					font-size: 14px;
+					color: #FFD700;
+					opacity: 0.7;
+				}
+				.jackpot::after {
+					content: '♣ ♦ ♥ ♠';
+					position: absolute;
+					bottom: 5px;
+					right: 10px;
+					font-size: 14px;
+					color: #FFD700;
+					opacity: 0.7;
 				}
 				.jackpot h2 {
 					color: #FFD700;
 					font-family: 'Playfair Display', serif;
-					text-shadow: 0 0 10px #FFD700;
-					margin-bottom: 10px;
+					text-shadow: 0 0 10px #FFD700, 0 0 20px #FFD700;
+					margin-bottom: 8px;
+					font-size: 24px;
+					position: relative;
+					z-index: 1;
 				}
 				.jackpot-amount {
-					font-size: 48px;
+					font-size: 36px;
 					font-weight: bold;
 					color: #FFD700;
-					text-shadow: 0 0 20px #FFD700, 0 0 40px #FFD700;
+					text-shadow: 0 0 15px #FFD700, 0 0 30px #FFD700;
+					position: relative;
+					z-index: 1;
+					animation: amountPulse 3s ease-in-out infinite;
 				}
 				@keyframes jackpotGlow {
-					0% { box-shadow: 0 8px 24px rgba(0,0,0,0.6), 0 0 12px rgba(0,85,170,0.4), 0 0 20px rgba(255,215,0,0.3); }
-					100% { box-shadow: 0 8px 24px rgba(0,0,0,0.6), 0 0 12px rgba(0,85,170,0.4), 0 0 40px rgba(255,215,0,0.6); }
+					0% { box-shadow: 0 6px 18px rgba(0,0,0,0.6), 0 0 10px rgba(0,85,170,0.4), 0 0 15px rgba(255,215,0,0.3); }
+					100% { box-shadow: 0 6px 18px rgba(0,0,0,0.6), 0 0 10px rgba(0,85,170,0.4), 0 0 30px rgba(255,215,0,0.6); }
+				}
+				@keyframes amountPulse {
+					0%, 100% { transform: scale(1); }
+					50% { transform: scale(1.05); }
 				}
 		</style>
 		""",

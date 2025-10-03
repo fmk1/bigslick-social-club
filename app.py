@@ -6,20 +6,8 @@ from datetime import datetime, timezone, timedelta
 import pandas as pd
 try:
 	import gspread
-	from gspread import get_as_dataframe, set_with_da				.jackpot::before {
-					content: '';
-					position: absolute;
-					top: 0;
-					left: 0;
-					right: 0;
-					bottom: 0;
-					background-image: url('images/royal-flush.jpg');
-					background-size: cover;
-					background-position: center;
-					background-repeat: no-repeat;
-					opacity: 0.15;
-					z-index: 0;
-				}AD_AVAILABLE = True
+	from gspread import get_as_dataframe, set_with_dataframe
+	GSPREAD_AVAILABLE = True
 except Exception:
 	GSPREAD_AVAILABLE = False
 import streamlit as st

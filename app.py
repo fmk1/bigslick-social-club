@@ -6,8 +6,20 @@ from datetime import datetime, timezone, timedelta
 import pandas as pd
 try:
 	import gspread
-	from gspread import get_as_dataframe, set_with_dataframe
-	GSPREAD_AVAILABLE = True
+	from gspread import get_as_dataframe, set_with_da				.jackpot::before {
+					content: '';
+					position: absolute;
+					top: 0;
+					left: 0;
+					right: 0;
+					bottom: 0;
+					background-image: url('images/royal-flush.jpg');
+					background-size: cover;
+					background-position: center;
+					background-repeat: no-repeat;
+					opacity: 0.15;
+					z-index: 0;
+				}AD_AVAILABLE = True
 except Exception:
 	GSPREAD_AVAILABLE = False
 import streamlit as st
@@ -197,22 +209,42 @@ st.markdown(
 					overflow: hidden;
 				}
 				.jackpot::before {
+					content: '';
+					position: absolute;
+					top: 0;
+					left: 0;
+					right: 0;
+					bottom: 0;
+					background-image: url('images/jackpot_bg.png');
+					background-size: cover;
+					background-position: center;
+					background-repeat: no-repeat;
+					opacity: 0.15;
+					z-index: 0;
+				}
+				.jackpot h2, .jackpot .jackpot-amount {
+					position: relative;
+					z-index: 1;
+				}
+				.jackpot h2::before {
 					content: '♠ ♥ ♦ ♣';
 					position: absolute;
-					top: 5px;
-					left: 10px;
+					top: -5px;
+					left: -10px;
 					font-size: 14px;
 					color: #FFD700;
 					opacity: 0.7;
+					z-index: 2;
 				}
-				.jackpot::after {
+				.jackpot h2::after {
 					content: '♣ ♦ ♥ ♠';
 					position: absolute;
-					bottom: 5px;
-					right: 10px;
+					top: -5px;
+					right: -10px;
 					font-size: 14px;
 					color: #FFD700;
 					opacity: 0.7;
+					z-index: 2;
 				}
 				.jackpot h2 {
 					color: #FFD700;

@@ -25,247 +25,6 @@ LOGO_PATH = "images/logo.png"
 HEADER_PATH = "images/header.jpg"
 GOOGLE_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSePm_b1oBvdNfM67ZvrDJJjH0qibHVboS0yEJ1ON6VnRj-h6A/viewform?usp=dialog"
 
-# --- Styling: dark poker themed background with blue accents and symbols
-st.markdown(
-		"""
-			<style>
-				/* Page background and global text color - dark blue theme with lighter radial gradient pattern */
-				.stApp, .reportview-container .main, section.main { 
-					background: radial-gradient(ellipse at center, #0055AA 0%, #004477 50%, #003355 100%), 
-						radial-gradient(circle at 20% 30%, rgba(255,215,0,0.05) 0%, transparent 40%), 
-						radial-gradient(circle at 80% 70%, rgba(0,85,170,0.05) 0%, transparent 40%),
-						url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Ctext x='20' y='30' font-size='24' fill='rgba(255,215,0,0.1)' text-anchor='middle'%3E♠%3C/text%3E%3C/svg%3E"); 
-					background-size: 100% 100%, 200px 200px, 150px 150px, 40px 40px;
-					background-position: center, 20% 30%, 80% 70%, 0 0;
-					background-repeat: no-repeat, repeat, repeat, repeat;
-					animation: backgroundShift 10s ease-in-out infinite;
-					color: #ffffff; 
-					font-family: 'Arial', sans-serif;
-				}
-				@keyframes backgroundShift {
-					0% { background-position: center, 20% 30%, 80% 70%, 0 0; }
-					50% { background-position: center, 25% 35%, 85% 75%, 5px 5px; }
-					100% { background-position: center, 20% 30%, 80% 70%, 0 0; }
-				}
-				.stApp, .stApp * { color: #ffffff !important; }
-
-			/* Header - Casino neon sign effect */
-			.club-header { display:flex; align-items:center; gap:16px; }
-			.club-title {
-				font-size:32px;
-				font-weight:700;
-				color:#ffffff;
-				font-family: 'Playfair Display', serif;
-				text-shadow:
-					0 0 5px #ff0000,
-					0 0 10px #ff0000,
-					0 0 15px #ff0000,
-					0 0 20px #ff0000,
-					0 0 35px #ff0000,
-					0 0 40px #ff0000;
-				animation: neonFlicker 2s infinite alternate;
-			}
-			@keyframes neonFlicker {
-				0%, 18%, 22%, 25%, 53%, 57%, 100% { text-shadow: 0 0 5px #ff0000, 0 0 10px #ff0000, 0 0 15px #ff0000, 0 0 20px #ff0000, 0 0 35px #ff0000, 0 0 40px #ff0000; }
-				20%, 24%, 55% { text-shadow: none; }
-			}
-			.club-sub { color:#cccccc; margin-top:-6px }
-
-			/* Tournament card - enhanced poker card with dealing animation */
-			.tournament-card {
-				background: linear-gradient(180deg,#003366,#004080);
-				border-radius:16px;
-				padding:16px;
-				margin-bottom:16px;
-				box-shadow: 0 8px 24px rgba(0,0,0,0.6), 0 0 12px rgba(0,85,170,0.4), inset 0 1px 0 rgba(255,255,255,0.1);
-				position: relative;
-				transition: transform 0.3s ease, box-shadow 0.3s ease;
-				animation: cardDeal 0.8s ease-out;
-				border: 2px solid transparent;
-				background-clip: padding-box;
-			}
-			@keyframes cardDeal {
-				0% { transform: rotateY(180deg) scale(0.8); opacity: 0; }
-				50% { transform: rotateY(90deg) scale(1.05); opacity: 0.7; }
-				100% { transform: rotateY(0deg) scale(1); opacity: 1; }
-			}
-			.tournament-card:hover {
-				transform: translateY(-4px) scale(1.02);
-				box-shadow: 0 12px 32px rgba(0,0,0,0.8), 0 0 16px rgba(0,85,170,0.6), inset 0 1px 0 rgba(255,255,255,0.2);
-				border-color: #FFD700;
-			}
-
-			.tournament-meta { color:#ffffff; font-weight:600 }
-			.badge { display:inline-block; background:#87CEEB; color:#000000 !important; padding:6px 10px; border-radius:999px; margin-right:8px; font-weight:700; }
-
-			/* Expander styling - rounded, with poker theme */
-			.stExpander {
-				border-radius: 12px !important;
-				border: 1px solid #0055aa !important;
-				background: rgba(0,51,102,0.1) !important;
-				margin-bottom: 12px !important;
-				transition: all 0.3s ease !important;
-			}
-			.stExpander:hover {
-				border-color: #FFD700 !important;
-				box-shadow: 0 4px 12px rgba(255,215,0,0.2) !important;
-			}
-			.stExpander > div:first-child {
-				border-radius: 12px 12px 0 0 !important;
-				background: linear-gradient(90deg, #003366, #004080) !important;
-				color: #ffffff !important;
-				font-weight: 700 !important;
-				padding: 12px 16px !important;
-			}
-
-			/* Make the Streamlit default buttons look more fun and poker-like with gold accents */
-			.stButton>button {
-				background: linear-gradient(90deg,#003366,#004080);
-				color: #ffffff;
-				border: 2px solid #FFD700;
-				padding: 10px 20px;
-				border-radius: 20px;
-				font-weight:700;
-				box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-				transition: all 0.2s ease;
-				position: relative;
-				overflow: hidden;
-			}
-			.stButton>button::before {
-				content: '';
-				position: absolute;
-				top: 0;
-				left: -100%;
-				width: 100%;
-				height: 100%;
-				background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-				transition: left 0.5s;
-			}
-			.stButton>button:hover::before {
-				left: 100%;
-			}
-			.stButton>button:hover {
-				transform: translateY(-2px);
-				box-shadow: 0 6px 16px rgba(0,0,0,0.4);
-				border-color: #FFA500;
-			}
-
-			/* Subtle separators between tournaments */
-			.tournament-separator {
-				height: 2px;
-				background: linear-gradient(90deg, transparent, #FFD700, transparent);
-				margin: 20px 0;
-				border-radius: 1px;
-			}
-
-				/* Small responsive tweaks for mobile */
-					@media (max-width: 600px) {
-						.club-title { font-size:28px; }
-						.tournament-card {
-							padding: 20px;
-							border-radius: 20px;
-							margin-bottom: 20px;
-							box-shadow: 0 10px 30px rgba(0,0,0,0.7), 0 0 15px rgba(0,85,170,0.5);
-						}
-						.tournament-card div { font-size:16px; }
-						.stExpander > div:first-child {
-							padding: 16px 20px !important;
-							font-size: 18px !important;
-						}
-						.stButton>button {
-							width: 100%;
-							padding: 14px 20px;
-							font-size: 16px;
-							border-radius: 24px;
-						}
-						.stApp { font-size: 16px; }
-					}
-				.header-title { text-align: center; }
-				@media (max-width: 600px) { .header-title { font-size: 22px !important; } .stMarkdown h1 { text-align: center !important; } }
-
-				/* Royal Flush Jackpot styling */
-				.jackpot {
-					text-align: center;
-					margin: 15px 0;
-					padding: 15px;
-					background: linear-gradient(180deg, #003366, #004080);
-					border-radius: 12px;
-					box-shadow: 0 6px 18px rgba(0,0,0,0.6), 0 0 10px rgba(0,85,170,0.4), inset 0 1px 0 rgba(255,255,255,0.1);
-					border: 2px solid #FFD700;
-					position: relative;
-					animation: jackpotGlow 2s ease-in-out infinite alternate;
-					overflow: hidden;
-				}
-				.jackpot::before {
-					content: '';
-					position: absolute;
-					top: 0;
-					left: 0;
-					right: 0;
-					bottom: 0;
-					background-image: url('images/royal-flush.jpg');
-					background-size: cover;
-					background-position: center;
-					background-repeat: no-repeat;
-					opacity: 0.15;
-					z-index: 0;
-				}
-				.jackpot h2, .jackpot .jackpot-amount {
-					position: relative;
-					z-index: 1;
-				}
-				.jackpot h2::before {
-					content: '♠ ♥ ♦ ♣';
-					position: absolute;
-					top: -5px;
-					left: -10px;
-					font-size: 14px;
-					color: #FFD700;
-					opacity: 0.7;
-					z-index: 2;
-				}
-				.jackpot h2::after {
-					content: '♣ ♦ ♥ ♠';
-					position: absolute;
-					top: -5px;
-					right: -10px;
-					font-size: 14px;
-					color: #FFD700;
-					opacity: 0.7;
-					z-index: 2;
-				}
-				.jackpot h2 {
-					color: #FFD700;
-					font-family: 'Playfair Display', serif;
-					text-shadow: 0 0 10px #FFD700, 0 0 20px #FFD700;
-					margin-bottom: 8px;
-					font-size: 24px;
-					position: relative;
-					z-index: 1;
-				}
-				.jackpot-amount {
-					font-size: 36px;
-					font-weight: bold;
-					color: #FFD700;
-					text-shadow: 0 0 15px #FFD700, 0 0 30px #FFD700;
-					position: relative;
-					z-index: 1;
-					animation: amountPulse 3s ease-in-out infinite;
-				}
-				@keyframes jackpotGlow {
-					0% { box-shadow: 0 6px 18px rgba(0,0,0,0.6), 0 0 10px rgba(0,85,170,0.4), 0 0 15px rgba(255,215,0,0.3); }
-					100% { box-shadow: 0 6px 18px rgba(0,0,0,0.6), 0 0 10px rgba(0,85,170,0.4), 0 0 30px rgba(255,215,0,0.6); }
-				}
-				@keyframes amountPulse {
-					0%, 100% { transform: scale(1); }
-					50% { transform: scale(1.05); }
-				}
-		</style>
-		""",
-		unsafe_allow_html=True,
-)# Note: header and title are rendered above (near the top) using the header image block; no additional large emoji title here.
-
-
 def load_schedule(csv_url: str | None = None) -> pd.DataFrame:
 	"""Load schedule from a CSV URL or local `schedule.csv`.
 
@@ -532,6 +291,260 @@ def main():
 	# Load jackpot amount
 	jackpot_csv_url = os.getenv("JACKPOT_CSV_URL")
 	jackpot = load_jackpot_from_csv(jackpot_csv_url) if jackpot_csv_url else ""
+
+	# Load jackpot background image
+	jackpot_bg_path = "images/royal-flush.jpg"
+	jackpot_bg_data_uri = None
+	if os.path.exists(jackpot_bg_path) and PIL_AVAILABLE:
+		try:
+			jackpot_img = Image.open(jackpot_bg_path)
+			import io, base64
+			buf = io.BytesIO()
+			jackpot_img.save(buf, format="JPEG")
+			jackpot_bg_data_uri = f"data:image/jpeg;base64,{base64.b64encode(buf.getvalue()).decode('ascii')}"
+		except Exception:
+			pass
+
+	# --- Styling: dark poker themed background with blue accents and symbols
+	jackpot_bg_css = f"url('{jackpot_bg_data_uri}')" if jackpot_bg_data_uri else "none"
+	st.markdown(
+		f"""
+			<style>
+				/* Page background and global text color - dark blue theme with lighter radial gradient pattern */
+				.stApp, .reportview-container .main, section.main {{ 
+					background: radial-gradient(ellipse at center, #0055AA 0%, #004477 50%, #003355 100%), 
+						radial-gradient(circle at 20% 30%, rgba(255,215,0,0.05) 0%, transparent 40%), 
+						radial-gradient(circle at 80% 70%, rgba(0,85,170,0.05) 0%, transparent 40%),
+						url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Ctext x='20' y='30' font-size='24' fill='rgba(255,215,0,0.1)' text-anchor='middle'%3E♠%3C/text%3E%3C/svg%3E"); 
+					background-size: 100% 100%, 200px 200px, 150px 150px, 40px 40px;
+					background-position: center, 20% 30%, 80% 70%, 0 0;
+					background-repeat: no-repeat, repeat, repeat, repeat;
+					animation: backgroundShift 10s ease-in-out infinite;
+					color: #ffffff; 
+					font-family: 'Arial', sans-serif;
+				}}
+				@keyframes backgroundShift {{
+					0% {{ background-position: center, 20% 30%, 80% 70%, 0 0; }}
+					50% {{ background-position: center, 25% 35%, 85% 75%, 5px 5px; }}
+					100% {{ background-position: center, 20% 30%, 80% 70%, 0 0; }}
+				}}
+				.stApp, .stApp * {{ color: #ffffff !important; }}
+
+			/* Header - Casino neon sign effect */
+			.club-header {{ display:flex; align-items:center; gap:16px; }}
+			.club-title {{
+				font-size:32px;
+				font-weight:700;
+				color:#ffffff;
+				font-family: 'Playfair Display', serif;
+				text-shadow:
+					0 0 5px #ff0000,
+					0 0 10px #ff0000,
+					0 0 15px #ff0000,
+					0 0 20px #ff0000,
+					0 0 35px #ff0000,
+					0 0 40px #ff0000;
+				animation: neonFlicker 2s infinite alternate;
+			}}
+			@keyframes neonFlicker {{
+				0%, 18%, 22%, 25%, 53%, 57%, 100% {{ text-shadow: 0 0 5px #ff0000, 0 0 10px #ff0000, 0 0 15px #ff0000, 0 0 20px #ff0000, 0 0 35px #ff0000, 0 0 40px #ff0000; }}
+				20%, 24%, 55% {{ text-shadow: none; }}
+			}}
+			.club-sub {{ color:#cccccc; margin-top:-6px }}
+
+			/* Tournament card - enhanced poker card with dealing animation */
+			.tournament-card {{
+				background: linear-gradient(180deg,#003366,#004080);
+				border-radius:16px;
+				padding:16px;
+				margin-bottom:16px;
+				box-shadow: 0 8px 24px rgba(0,0,0,0.6), 0 0 12px rgba(0,85,170,0.4), inset 0 1px 0 rgba(255,255,255,0.1);
+				position: relative;
+				transition: transform 0.3s ease, box-shadow 0.3s ease;
+				animation: cardDeal 0.8s ease-out;
+				border: 2px solid transparent;
+				background-clip: padding-box;
+			}}
+			@keyframes cardDeal {{
+				0% {{ transform: rotateY(180deg) scale(0.8); opacity: 0; }}
+				50% {{ transform: rotateY(90deg) scale(1.05); opacity: 0.7; }}
+				100% {{ transform: rotateY(0deg) scale(1); opacity: 1; }}
+			}}
+			.tournament-card:hover {{
+				transform: translateY(-4px) scale(1.02);
+				box-shadow: 0 12px 32px rgba(0,0,0,0.8), 0 0 16px rgba(0,85,170,0.6), inset 0 1px 0 rgba(255,255,255,0.2);
+				border-color: #FFD700;
+			}}
+
+			.tournament-meta {{ color:#ffffff; font-weight:600 }}
+			.badge {{ display:inline-block; background:#87CEEB; color:#000000 !important; padding:6px 10px; border-radius:999px; margin-right:8px; font-weight:700; }}
+
+			/* Expander styling - rounded, with poker theme */
+			.stExpander {{
+				border-radius: 12px !important;
+				border: 1px solid #0055aa !important;
+				background: rgba(0,51,102,0.1) !important;
+				margin-bottom: 12px !important;
+				transition: all 0.3s ease !important;
+			}}
+			.stExpander:hover {{
+				border-color: #FFD700 !important;
+				box-shadow: 0 4px 12px rgba(255,215,0,0.2) !important;
+			}}
+			.stExpander > div:first-child {{
+				border-radius: 12px 12px 0 0 !important;
+				background: linear-gradient(90deg, #003366, #004080) !important;
+				color: #ffffff !important;
+				font-weight: 700 !important;
+				padding: 12px 16px !important;
+			}}
+
+			/* Make the Streamlit default buttons look more fun and poker-like with gold accents */
+			.stButton>button {{
+				background: linear-gradient(90deg,#003366,#004080);
+				color: #ffffff;
+				border: 2px solid #FFD700;
+				padding: 10px 20px;
+				border-radius: 20px;
+				font-weight:700;
+				box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+				transition: all 0.2s ease;
+				position: relative;
+				overflow: hidden;
+			}}
+			.stButton>button::before {{
+				content: '';
+				position: absolute;
+				top: 0;
+				left: -100%;
+				width: 100%;
+				height: 100%;
+				background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+				transition: left 0.5s;
+			}}
+			.stButton>button:hover::before {{
+				left: 100%;
+			}}
+			.stButton>button:hover {{
+				transform: translateY(-2px);
+				box-shadow: 0 6px 16px rgba(0,0,0,0.4);
+				border-color: #FFA500;
+			}}
+
+			/* Subtle separators between tournaments */
+			.tournament-separator {{
+				height: 2px;
+				background: linear-gradient(90deg, transparent, #FFD700, transparent);
+				margin: 20px 0;
+				border-radius: 1px;
+			}}
+
+				/* Small responsive tweaks for mobile */
+					@media (max-width: 600px) {{
+						.club-title {{ font-size:28px; }}
+						.tournament-card {{
+							padding: 20px;
+							border-radius: 20px;
+							margin-bottom: 20px;
+							box-shadow: 0 10px 30px rgba(0,0,0,0.7), 0 0 15px rgba(0,85,170,0.5);
+						}}
+						.tournament-card div {{ font-size:16px; }}
+						.stExpander > div:first-child {{
+							padding: 16px 20px !important;
+							font-size: 18px !important;
+						}}
+						.stButton>button {{
+							width: 100%;
+							padding: 14px 20px;
+							font-size: 16px;
+							border-radius: 24px;
+						}}
+						.stApp {{ font-size: 16px; }}
+					}}
+				.header-title {{ text-align: center; }}
+				@media (max-width: 600px) {{ .header-title {{ font-size: 22px !important; }} .stMarkdown h1 {{ text-align: center !important; }} }}
+
+				/* Royal Flush Jackpot styling */
+				.jackpot {{
+					text-align: center;
+					margin: 15px 0;
+					padding: 15px;
+					background: linear-gradient(180deg, #003366, #004080);
+					border-radius: 12px;
+					box-shadow: 0 6px 18px rgba(0,0,0,0.6), 0 0 10px rgba(0,85,170,0.4), inset 0 1px 0 rgba(255,255,255,0.1);
+					border: 2px solid #FFD700;
+					position: relative;
+					animation: jackpotGlow 2s ease-in-out infinite alternate;
+					overflow: hidden;
+				}}
+				.jackpot::before {{
+					content: '';
+					position: absolute;
+					top: 0;
+					left: 0;
+					right: 0;
+					bottom: 0;
+					background-image: {jackpot_bg_css};
+					background-size: cover;
+					background-position: center;
+					background-repeat: no-repeat;
+					opacity: 0.15;
+					z-index: 0;
+				}}
+				.jackpot h2, .jackpot .jackpot-amount {{
+					position: relative;
+					z-index: 1;
+				}}
+				.jackpot h2::before {{
+					content: '♠ ♥ ♦ ♣';
+					position: absolute;
+					top: -5px;
+					left: -10px;
+					font-size: 14px;
+					color: #FFD700;
+					opacity: 0.7;
+					z-index: 2;
+				}}
+				.jackpot h2::after {{
+					content: '♣ ♦ ♥ ♠';
+					position: absolute;
+					top: -5px;
+					right: -10px;
+					font-size: 14px;
+					color: #FFD700;
+					opacity: 0.7;
+					z-index: 2;
+				}}
+				.jackpot h2 {{
+					color: #FFD700;
+					font-family: 'Playfair Display', serif;
+					text-shadow: 0 0 10px #FFD700, 0 0 20px #FFD700;
+					margin-bottom: 8px;
+					font-size: 24px;
+					position: relative;
+					z-index: 1;
+				}}
+				.jackpot-amount {{
+					font-size: 36px;
+					font-weight: bold;
+					color: #FFD700;
+					text-shadow: 0 0 15px #FFD700, 0 0 30px #FFD700;
+					position: relative;
+					z-index: 1;
+					animation: amountPulse 3s ease-in-out infinite;
+				}}
+				@keyframes jackpotGlow {{
+					0% {{ box-shadow: 0 6px 18px rgba(0,0,0,0.6), 0 0 10px rgba(0,85,170,0.4), 0 0 15px rgba(255,215,0,0.3); }}
+					100% {{ box-shadow: 0 6px 18px rgba(0,0,0,0.6), 0 0 10px rgba(0,85,170,0.4), 0 0 30px rgba(255,215,0,0.6); }}
+				}}
+				@keyframes amountPulse {{
+					0%, 100% {{ transform: scale(1); }}
+					50% {{ transform: scale(1.05); }}
+				}}
+		</style>
+		""",
+		unsafe_allow_html=True,
+	)# Note: header and title are rendered above (near the top) using the header image block; no additional large emoji title here.
 
 	if df.empty:
 		st.info("No schedule found. Add a `schedule.csv` in the project root or provide a SCHEDULE_CSV_URL in settings.")

@@ -340,27 +340,18 @@ def load_schedule_from_gsheet(sheet_id: str, service_account_path: str | None = 
 		return load_schedule(None)
 
 
-def load_jackpot_from_gsheet(sheet_id: str, service_account_path: str | None = None) -> str:
-	"""Load the jackpot amount from the first cell of the first worksheet in a Google Sheet.
+def load_jackpot_from_csv(csv_url: str) -> str:
+	"""Load the jackpot amount from the first cell of a published Google Sheet CSV.
 
 	Returns the value as a string, or empty string on failure.
 	"""
-	if not GSPREAD_AVAILABLE:
-		st.warning("gspread not available in environment — install gspread and google-auth to enable Google Sheets integration.")
-		return ""
 	try:
-		# authorize
-		if service_account_path:
-			gc = gspread.service_account(filename=service_account_path)
-		else:
-			gc = gspread.oauth()
-		sh = gc.open_by_key(sheet_id)
-		ws = sh.get_worksheet(0)
-		# Assume jackpot amount is in cell A1
-		value = ws.cell(1, 1).value
-		return str(value) if value else ""
+		df = pd.read_csv(csv_url)
+		if not df.empty:
+			return str(df.iloc[0, 0])
+		return ""
 	except Exception as e:
-		st.error(f"Failed loading jackpot from Google Sheet: {e}")
+		st.error(f"Failed loading jackpot from CSV: {e}")
 		return ""
 
 
@@ -490,8 +481,8 @@ def main():
 		pass
 
 	# Load jackpot amount
-	jackpot_sheet_id = os.getenv("JACKPOT_SHEET_ID")
-	jackpot = load_jackpot_from_gsheet(jackpot_sheet_id) if jackpot_sheet_id else ""
+	jackpot_csv_url = os.getenv("JACKPOT_CSV_URL")
+	jackpot = load_jackpot_from_csv(jackpot_csv_url) if jackpot_csv_url else ""
 
 	if df.empty:
 		st.info("No schedule found. Add a `schedule.csv` in the project root or provide a SCHEDULE_CSV_URL in settings.")

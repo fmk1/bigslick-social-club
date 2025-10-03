@@ -1,0 +1,14 @@
+
+elif page == "About":
+	st.header("About Big Slick Social Club")
+	st.write("Big Slick Social Club is an exciting new live poker venue, featuring both tournaments and cash games. We offer a fun and welcoming environment for poker enthusiasts of all levels.")
+	st.write("Our weekly tournament schedule includes a variety of events to keep things interesting. Join us for some great poker action!")
+
+elif page == "Contact":
+	st.header("Contact Us")
+	st.markdown("<a href=\"https://maps.google.com/?q=5825 Jackman Rd, Toledo, OH 43613\" target=\"_blank\" style=\"color:#FFD700; text-decoration:none;\">📍 5825 Jackman Rd, Toledo, OH 43613</a>", unsafe_allow_html=True)
+	st.write("Follow us on:")
+	cols = st.columns(3)
+	cols[0].markdown("<a href=\"https://www.facebook.com/p/Big-Slick-Social-Club-61571086161193/\" target=\"_blank\"><button style=\"background:#4267B2; color:white; border:none; padding:8px 16px; border-radius:5px; cursor:pointer; font-weight:bold;\">📘 Facebook</button></a>", unsafe_allow_html=True)
+	cols[1].markdown("<a href=\"https://www.instagram.com/bigslicksocialclub/\" target=\"_blank\"><button style=\"background:linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888); color:white; border:none; padding:8px 16px; border-radius:5px; cursor:pointer; font-weight:bold;\">📷 Instagram</button></a>", unsafe_allow_html=True)
+	cols[2].markdown("<a href=\"tel:(419) 360-3003\" style=\"color:#FFD700; text-decoration:none;\">📞 Call: (419) 360-3003</a>", unsafe_allow_html=True)

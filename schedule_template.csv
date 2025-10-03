@@ -1,0 +1,8 @@
+day,time,buy_in,rebuy,starting_chips,cutoff,notes
+Monday,19:00,$30,Yes,30K,15:00,Weekly $30 tournament
+Tuesday,19:00,$20,No,20K,14:30,Open cash night
+Wednesday,19:00,$50,Yes,50K,16:00,Deepstack special
+Thursday,19:00,$15,No,10K,13:30,Fast structure
+Friday,20:00,$100,Yes,100K,18:00,Friday night high roller
+Saturday,18:00,$40,Yes,40K,16:00,Weekend qualifier
+Sunday,17:00,$25,No,25K,15:00,Weekend wrap-up

@@ -203,7 +203,7 @@ st.markdown(
 					left: 0;
 					right: 0;
 					bottom: 0;
-					background-image: url('images/jackpot_bg.png');
+					background-image: url('images/royal-flush.jpg');
 					background-size: cover;
 					background-position: center;
 					background-repeat: no-repeat;

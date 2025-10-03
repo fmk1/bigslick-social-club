@@ -465,7 +465,9 @@ def main():
 				group = grouped[day]
 				date_str = day_dates[day].strftime("%B %d, %Y")
 				tournament_names = ", ".join(group['notes'].tolist())
-				with st.expander(f"{day}, {date_str} - {tournament_names}"):
+				if day == today_name:
+					# Today: Show full details directly without expander
+					st.subheader(f"🎯 Today's Tournament - {day}, {date_str}")
 					# Display tournaments in a 1-column layout
 					num_cols = 1
 					cols = st.columns(num_cols)
@@ -501,6 +503,56 @@ def main():
 								pre_register_html = f'<a href="{GOOGLE_FORM_URL}" target="_blank"><button style="background: linear-gradient(90deg,#003366,#004080); color: #ffffff; border: 2px solid #FFD700; padding: 10px 20px; border-radius: 20px; font-weight:700; box-shadow: 0 4px 12px rgba(0,0,0,0.3); transition: all 0.2s ease; position: relative; overflow: hidden; margin-top: 10px;">Pre-register</button></a>'
 							
 							st.markdown(f"""
+<div class="tournament-card">
+<div style='font-size:18px; font-weight:700'>🎴 {row.get('time', '')} — {row.get('notes','')}</div>
+<div class='status' style='color:#FFD700; font-weight:600; margin-bottom:6px;' {'data-target="' + target_ts + '"' if target_ts else ''}>Status: {status}</div>
+<div style='margin-top:6px; line-height:1.6;'>
+Buy-in: <strong>{row.get('buy_in','')}</strong><br>
+Starting chips: <strong>{row.get('starting_chips','N/A')}</strong><br>
+Re-buy: <strong>{row.get('rebuy','No')}</strong><br>
+Cutoff: <strong>{row.get('cutoff','N/A')}</strong>
+</div>
+{pre_register_html}
+</div>
+""", unsafe_allow_html=True)
+				else:
+					# Other days: Use expander
+					with st.expander(f"{day}, {date_str} - {tournament_names}"):
+						# Display tournaments in a 1-column layout
+						num_cols = 1
+						cols = st.columns(num_cols)
+						for i, (_, row) in enumerate(group.iterrows()):
+							with cols[i % num_cols]:
+								tournament_title = f"{row.get('notes','')}"
+								# Calculate status
+								status = ""
+								target_ts = ""
+								try:
+									time_parsed = datetime.strptime(row.get('time', ''), "%I:%M %p").time()
+									tournament_dt = datetime.combine(day_dates[day], time_parsed).replace(tzinfo=timezone.utc)
+									now = datetime.now(timezone.utc)
+									if tournament_dt < now:
+										status = "Ended"
+									elif tournament_dt.date() == now.date():
+										if tournament_dt > now:
+											delta = tournament_dt - now
+											hours, remainder = divmod(delta.seconds, 3600)
+											minutes, seconds = divmod(remainder, 60)
+											status = f"Starts in {hours:02d}:{minutes:02d}:{seconds:02d}"
+											target_ts = str(int(tournament_dt.timestamp()))
+										else:
+											delta = now - tournament_dt
+											hours, remainder = divmod(delta.seconds, 3600)
+											minutes, seconds = divmod(remainder, 60)
+											status = f"Started {hours:02d}:{minutes:02d} ago"
+								except:
+									status = ""
+								# Tournament card layout
+								pre_register_html = ""
+								if day == today_name and GOOGLE_FORM_URL:
+									pre_register_html = f'<a href="{GOOGLE_FORM_URL}" target="_blank"><button style="background: linear-gradient(90deg,#003366,#004080); color: #ffffff; border: 2px solid #FFD700; padding: 10px 20px; border-radius: 20px; font-weight:700; box-shadow: 0 4px 12px rgba(0,0,0,0.3); transition: all 0.2s ease; position: relative; overflow: hidden; margin-top: 10px;">Pre-register</button></a>'
+								
+								st.markdown(f"""
 <div class="tournament-card">
 <div style='font-size:18px; font-weight:700'>🎴 {row.get('time', '')} — {row.get('notes','')}</div>
 <div class='status' style='color:#FFD700; font-weight:600; margin-bottom:6px;' {'data-target="' + target_ts + '"' if target_ts else ''}>Status: {status}</div>

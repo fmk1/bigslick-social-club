@@ -181,6 +181,35 @@ st.markdown(
 					}
 				.header-title { text-align: center; }
 				@media (max-width: 600px) { .header-title { font-size: 22px !important; } .stMarkdown h1 { text-align: center !important; } }
+
+				/* Royal Flush Jackpot styling */
+				.jackpot {
+					text-align: center;
+					margin: 20px 0;
+					padding: 20px;
+					background: linear-gradient(180deg, #003366, #004080);
+					border-radius: 16px;
+					box-shadow: 0 8px 24px rgba(0,0,0,0.6), 0 0 12px rgba(0,85,170,0.4);
+					border: 2px solid transparent;
+					background-clip: padding-box;
+					animation: jackpotGlow 2s ease-in-out infinite alternate;
+				}
+				.jackpot h2 {
+					color: #FFD700;
+					font-family: 'Playfair Display', serif;
+					text-shadow: 0 0 10px #FFD700;
+					margin-bottom: 10px;
+				}
+				.jackpot-amount {
+					font-size: 48px;
+					font-weight: bold;
+					color: #FFD700;
+					text-shadow: 0 0 20px #FFD700, 0 0 40px #FFD700;
+				}
+				@keyframes jackpotGlow {
+					0% { box-shadow: 0 8px 24px rgba(0,0,0,0.6), 0 0 12px rgba(0,85,170,0.4), 0 0 20px rgba(255,215,0,0.3); }
+					100% { box-shadow: 0 8px 24px rgba(0,0,0,0.6), 0 0 12px rgba(0,85,170,0.4), 0 0 40px rgba(255,215,0,0.6); }
+				}
 		</style>
 		""",
 		unsafe_allow_html=True,
@@ -311,6 +340,30 @@ def load_schedule_from_gsheet(sheet_id: str, service_account_path: str | None = 
 		return load_schedule(None)
 
 
+def load_jackpot_from_gsheet(sheet_id: str, service_account_path: str | None = None) -> str:
+	"""Load the jackpot amount from the first cell of the first worksheet in a Google Sheet.
+
+	Returns the value as a string, or empty string on failure.
+	"""
+	if not GSPREAD_AVAILABLE:
+		st.warning("gspread not available in environment — install gspread and google-auth to enable Google Sheets integration.")
+		return ""
+	try:
+		# authorize
+		if service_account_path:
+			gc = gspread.service_account(filename=service_account_path)
+		else:
+			gc = gspread.oauth()
+		sh = gc.open_by_key(sheet_id)
+		ws = sh.get_worksheet(0)
+		# Assume jackpot amount is in cell A1
+		value = ws.cell(1, 1).value
+		return str(value) if value else ""
+	except Exception as e:
+		st.error(f"Failed loading jackpot from Google Sheet: {e}")
+		return ""
+
+
 def create_sheet_from_template(service_account_path: str, title: str = "Bigslick Schedule") -> tuple[str, str]:
 	"""Create a new Google Sheet under the service account, populate it with schedule_template.csv,
 	and return (sheet_url, sheet_id).
@@ -436,6 +489,10 @@ def main():
 		# if normalize fails, keep original df
 		pass
 
+	# Load jackpot amount
+	jackpot_sheet_id = os.getenv("JACKPOT_SHEET_ID")
+	jackpot = load_jackpot_from_gsheet(jackpot_sheet_id) if jackpot_sheet_id else ""
+
 	if df.empty:
 		st.info("No schedule found. Add a `schedule.csv` in the project root or provide a SCHEDULE_CSV_URL in settings.")
 		st.stop()
@@ -459,6 +516,14 @@ def main():
 	with tabs[0]:
 		# Home: Compact schedule preview
 		st.header("Welcome to Big Slick Social Club")
+		# Display Royal Flush Jackpot if available
+		if jackpot:
+			st.markdown(f"""
+<div class="jackpot">
+<h2>Royal Flush Jackpot</h2>
+<div class="jackpot-amount">${jackpot}</div>
+</div>
+""", unsafe_allow_html=True)
 		st.write("Click on any day below to see the tournament schedule for that day.")
 		for day in days_order:
 			if day in grouped:

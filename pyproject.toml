@@ -2,6 +2,9 @@
 requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
+[tool.render]
+buildCommand = "pip install -r requirements.txt"
+
 [tool.setuptools]
 py-modules = []
 

@@ -5,4 +5,4 @@ Pillow==11.0.0
 gspread==5.9.0
 google-auth==2.23.0
 # Optional helper to convert sheets to pandas
-gspread-dataframe==4.0.2
+gspread-dataframe==4.0.0

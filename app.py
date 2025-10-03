@@ -16,6 +16,7 @@ try:
 	PIL_AVAILABLE = True
 except Exception:
 	PIL_AVAILABLE = False
+import urllib.request
 
 
 st.set_page_config(page_title="Bigslick Social Club", layout="wide")
@@ -341,15 +342,14 @@ def load_schedule_from_gsheet(sheet_id: str, service_account_path: str | None = 
 
 
 def load_jackpot_from_csv(csv_url: str) -> str:
-	"""Load the jackpot amount from the first cell of a published Google Sheet CSV.
+	"""Load the jackpot amount from a published Google Sheet CSV URL.
 
 	Returns the value as a string, or empty string on failure.
 	"""
 	try:
-		df = pd.read_csv(csv_url)
-		if not df.empty:
-			return str(df.iloc[0, 0])
-		return ""
+		with urllib.request.urlopen(csv_url) as response:
+			data = response.read().decode('utf-8').strip()
+			return data
 	except Exception as e:
 		st.error(f"Failed loading jackpot from CSV: {e}")
 		return ""

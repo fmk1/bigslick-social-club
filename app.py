@@ -2,6 +2,8 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 from datetime import datetime, timezone, timedelta
+from zoneinfo import ZoneInfo
+import calendar
 
 import pandas as pd
 try:
@@ -305,13 +307,25 @@ def main():
 		except Exception:
 			pass
 
+	# Load spade image
+	spade_path = "/home/ifeanyi/Downloads/Royal flush of spade.png"
+	spade_data_uri = None
+	if os.path.exists(spade_path) and PIL_AVAILABLE:
+		try:
+			spade_img = Image.open(spade_path)
+			buf = io.BytesIO()
+			spade_img.save(buf, format="PNG")
+			spade_data_uri = f"data:image/png;base64,{base64.b64encode(buf.getvalue()).decode('ascii')}"
+		except Exception:
+			pass
+
 	# --- Styling: dark poker themed background with blue accents and symbols
-	jackpot_bg_css = f"url('{jackpot_bg_data_uri}')" if jackpot_bg_data_uri else "none"
+	jackpot_bg_css = "none"  # Removed old background image
 	st.markdown(
 		f"""
 			<style>
 				/* Page background and global text color - dark blue theme with lighter radial gradient pattern */
-				.stApp, .reportview-container .main, section.main {{ 
+				.stApp, .reportview-container .main, section.main {{
 					background: radial-gradient(ellipse at center, #0055AA 0%, #004477 50%, #003355 100%), 
 						radial-gradient(circle at 20% 30%, rgba(255,215,0,0.05) 0%, transparent 40%), 
 						radial-gradient(circle at 80% 70%, rgba(0,85,170,0.05) 0%, transparent 40%),
@@ -322,8 +336,11 @@ def main():
 					animation: backgroundShift 10s ease-in-out infinite;
 					color: #ffffff; 
 					font-family: 'Arial', sans-serif;
-				}}
 				@keyframes backgroundShift {{
+					0% {{ background-position: center, 20% 30%, 80% 70%, 0 0; }}
+					50% {{ background-position: center, 25% 35%, 85% 75%, 5px 5px; }}
+					100% {{ background-position: center, 20% 30%, 80% 70%, 0 0; }}
+				}}
 					0% {{ background-position: center, 20% 30%, 80% 70%, 0 0; }}
 					50% {{ background-position: center, 25% 35%, 85% 75%, 5px 5px; }}
 					100% {{ background-position: center, 20% 30%, 80% 70%, 0 0; }}
@@ -399,7 +416,7 @@ def main():
 				padding: 12px 16px !important;
 			}}
 
-			/* Make the Streamlit default buttons look more fun and poker-like with gold accents */
+				/* Make the Streamlit default buttons look more fun and poker-like with gold accents */
 			.stButton>button {{
 				background: linear-gradient(90deg,#003366,#004080);
 				color: #ffffff;
@@ -429,6 +446,30 @@ def main():
 				transform: translateY(-2px);
 				box-shadow: 0 6px 16px rgba(0,0,0,0.4);
 				border-color: #FFA500;
+			}}
+
+			/* Style the tab buttons to look more like poker buttons */
+			.st-be button {{
+				background: linear-gradient(90deg,#003366,#004080) !important;
+				color: #ffffff !important;
+				border: 2px solid #FFD700 !important;
+				border-radius: 25px !important;
+				font-weight: 700 !important;
+				box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important;
+				transition: all 0.2s ease !important;
+				padding: 12px 24px !important;
+				margin: 0 4px !important;
+			}}
+			.st-be button:hover {{
+				transform: translateY(-2px) !important;
+				box-shadow: 0 6px 16px rgba(0,0,0,0.4) !important;
+				border-color: #FFA500 !important;
+			}}
+			/* Selected tab styling */
+			.st-be button[data-baseweb="tab"][aria-selected="true"] {{
+				background: linear-gradient(90deg,#004477,#005588) !important;
+				color: #ffffff !important;
+				border-color: #FFD700 !important;
 			}}
 
 			/* Subtle separators between tournaments */
@@ -541,6 +582,16 @@ def main():
 					0%, 100% {{ transform: scale(1); }}
 					50% {{ transform: scale(1.05); }}
 				}}
+
+
+				@media (min-width: 601px) {{
+					.stApp, .reportview-container .main, section.main {{
+						max-width: 850px;
+						margin: 0 auto;
+						padding-left: 20px;
+						padding-right: 20px;
+					}}
+				}}
 		</style>
 		""",
 		unsafe_allow_html=True,
@@ -568,53 +619,32 @@ def main():
 
 	with tabs[0]:
 		# Home: Compact schedule preview
-		st.header("Welcome to Big Slick Social Club")
+		st.markdown('<h1 style="text-align: center;">Welcome to Big Slick Social Club</h1>', unsafe_allow_html=True)
 		# Display Royal Flush Jackpot if available
 		if jackpot:
 			st.markdown(f"""
 <div class="jackpot">
 <h2>Royal Flush Jackpot</h2>
 <div class="jackpot-amount">${jackpot}</div>
+{f'<img src="{spade_data_uri}" style="position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover; z-index:0; opacity:0.1;" />' if spade_data_uri else ''}
 </div>
 """, unsafe_allow_html=True)
-		st.write("Click on any day below to see the tournament schedule for that day.")
+		st.markdown('<p style="text-align: center;">Click on any day below to see the tournament schedule for that day.</p>', unsafe_allow_html=True)
 		for day in days_order:
 			if day in grouped:
 				group = grouped[day]
 				date_str = day_dates[day].strftime("%B %d, %Y")
-				tournament_names = ", ".join(group['notes'].tolist())
-				if day == today_name:
-					# Today: Show full details directly without expander
-					st.subheader(f"🎯 Today's Tournament - {day}, {date_str}")
+				tournament_names = ", ".join([str(n) for n in group['notes'].tolist() if str(n) != 'nan' and str(n).strip()])
+				# Always use expander for all days
+				short_date = f"{day[:3]}, {date_str.split()[0][:3]} {date_str.split()[1].rstrip(',')}"
+
+				with st.expander(f"{short_date} - {tournament_names or 'Tournament'}"):
 					# Display tournaments in a 1-column layout
 					num_cols = 1
 					cols = st.columns(num_cols)
 					for i, (_, row) in enumerate(group.iterrows()):
 						with cols[i % num_cols]:
 							tournament_title = f"{row.get('notes','')}"
-							# Calculate status
-							status = ""
-							target_ts = ""
-							try:
-								time_parsed = datetime.strptime(row.get('time', ''), "%I:%M %p").time()
-								tournament_dt = datetime.combine(day_dates[day], time_parsed).replace(tzinfo=timezone.utc)
-								now = datetime.now(timezone.utc)
-								if tournament_dt < now:
-									status = "Ended"
-								elif tournament_dt.date() == now.date():
-									if tournament_dt > now:
-										delta = tournament_dt - now
-										hours, remainder = divmod(delta.seconds, 3600)
-										minutes, seconds = divmod(remainder, 60)
-										status = f"Starts in {hours:02d}:{minutes:02d}:{seconds:02d}"
-										target_ts = str(int(tournament_dt.timestamp()))
-									else:
-										delta = now - tournament_dt
-										hours, remainder = divmod(delta.seconds, 3600)
-										minutes, seconds = divmod(remainder, 60)
-										status = f"Started {hours:02d}:{minutes:02d} ago"
-							except:
-								status = ""
 							# Tournament card layout
 							pre_register_html = ""
 							if day == today_name and GOOGLE_FORM_URL:
@@ -623,7 +653,6 @@ def main():
 							st.markdown(f"""
 <div class="tournament-card">
 <div style='font-size:18px; font-weight:700'>🎴 {row.get('time', '')} — {row.get('notes','')}</div>
-<div class='status' style='color:#FFD700; font-weight:600; margin-bottom:6px;' {'data-target="' + target_ts + '"' if target_ts else ''}>Status: {status}</div>
 <div style='margin-top:6px; line-height:1.6;'>
 Buy-in: <strong>{row.get('buy_in','')}</strong><br>
 Starting chips: <strong>{row.get('starting_chips','N/A')}</strong><br>
@@ -633,57 +662,6 @@ Cutoff: <strong>{row.get('cutoff','N/A')}</strong>
 {pre_register_html}
 </div>
 """, unsafe_allow_html=True)
-				else:
-					# Other days: Use expander
-					with st.expander(f"{day}, {date_str} - {tournament_names}"):
-						# Display tournaments in a 1-column layout
-						num_cols = 1
-						cols = st.columns(num_cols)
-						for i, (_, row) in enumerate(group.iterrows()):
-							with cols[i % num_cols]:
-								tournament_title = f"{row.get('notes','')}"
-								# Calculate status
-								status = ""
-								target_ts = ""
-								try:
-									time_parsed = datetime.strptime(row.get('time', ''), "%I:%M %p").time()
-									tournament_dt = datetime.combine(day_dates[day], time_parsed).replace(tzinfo=timezone.utc)
-									now = datetime.now(timezone.utc)
-									if tournament_dt < now:
-										status = "Ended"
-									elif tournament_dt.date() == now.date():
-										if tournament_dt > now:
-											delta = tournament_dt - now
-											hours, remainder = divmod(delta.seconds, 3600)
-											minutes, seconds = divmod(remainder, 60)
-											status = f"Starts in {hours:02d}:{minutes:02d}:{seconds:02d}"
-											target_ts = str(int(tournament_dt.timestamp()))
-										else:
-											delta = now - tournament_dt
-											hours, remainder = divmod(delta.seconds, 3600)
-											minutes, seconds = divmod(remainder, 60)
-											status = f"Started {hours:02d}:{minutes:02d} ago"
-								except:
-									status = ""
-								# Tournament card layout
-								pre_register_html = ""
-								if day == today_name and GOOGLE_FORM_URL:
-									pre_register_html = f'<a href="{GOOGLE_FORM_URL}" target="_blank"><button style="background: linear-gradient(90deg,#003366,#004080); color: #ffffff; border: 2px solid #FFD700; padding: 10px 20px; border-radius: 20px; font-weight:700; box-shadow: 0 4px 12px rgba(0,0,0,0.3); transition: all 0.2s ease; position: relative; overflow: hidden; margin-top: 10px;">Pre-register</button></a>'
-								
-								st.markdown(f"""
-<div class="tournament-card">
-<div style='font-size:18px; font-weight:700'>🎴 {row.get('time', '')} — {row.get('notes','')}</div>
-<div class='status' style='color:#FFD700; font-weight:600; margin-bottom:6px;' {'data-target="' + target_ts + '"' if target_ts else ''}>Status: {status}</div>
-<div style='margin-top:6px; line-height:1.6;'>
-Buy-in: <strong>{row.get('buy_in','')}</strong><br>
-Starting chips: <strong>{row.get('starting_chips','N/A')}</strong><br>
-Re-buy: <strong>{row.get('rebuy','No')}</strong><br>
-Cutoff: <strong>{row.get('cutoff','N/A')}</strong>
-</div>
-{pre_register_html}
-</div>
-""", unsafe_allow_html=True)
-		st.markdown("""<script>setInterval(function() { var now = Math.floor(Date.now() / 1000); var statuses = document.querySelectorAll('.status'); statuses.forEach(function(el) { var target = el.getAttribute('data-target'); if (target) { var diff = target - now; if (diff > 0) { var hours = Math.floor(diff / 3600); var minutes = Math.floor((diff % 3600) / 60); var seconds = diff % 60; el.textContent = 'Status: Starts in ' + hours.toString().padStart(2,'0') + ':' + minutes.toString().padStart(2,'0') + ':' + seconds.toString().padStart(2,'0'); } else { el.textContent = 'Status: Started'; } } }); }, 1000);</script>""", unsafe_allow_html=True)
 
 	with tabs[1]:
 		# Poker Schedule: Full flat list of all tournaments
@@ -695,29 +673,6 @@ Cutoff: <strong>{row.get('cutoff','N/A')}</strong>
 				for i, (_, row) in enumerate(group.iterrows()):
 					with st.container():
 						tournament_title = f"{row.get('notes','')}"
-						# Calculate status
-						status = ""
-						target_ts = ""
-						try:
-							time_parsed = datetime.strptime(row.get('time', ''), "%I:%M %p").time()
-							tournament_dt = datetime.combine(day_dates[day], time_parsed).replace(tzinfo=timezone.utc)
-							now = datetime.now(timezone.utc)
-							if tournament_dt < now:
-								status = "Ended"
-							elif tournament_dt.date() == now.date():
-								if tournament_dt > now:
-									delta = tournament_dt - now
-									hours, remainder = divmod(delta.seconds, 3600)
-									minutes, seconds = divmod(remainder, 60)
-									status = f"Starts in {hours:02d}:{minutes:02d}:{seconds:02d}"
-									target_ts = str(int(tournament_dt.timestamp()))
-								else:
-									delta = now - tournament_dt
-									hours, remainder = divmod(delta.seconds, 3600)
-									minutes, seconds = divmod(remainder, 60)
-									status = f"Started {hours:02d}:{minutes:02d} ago"
-						except:
-							status = ""
 						# Tournament card layout
 						pre_register_html = ""
 						if day == today_name and GOOGLE_FORM_URL:
@@ -726,7 +681,6 @@ Cutoff: <strong>{row.get('cutoff','N/A')}</strong>
 						st.markdown(f"""
 <div class="tournament-card">
 <div style='font-size:18px; font-weight:700'>🎴 {day}, {date_str} - {row.get('time', '')} — {row.get('notes','')}</div>
-<div class='status' style='color:#FFD700; font-weight:600; margin-bottom:6px;' {'data-target="' + target_ts + '"' if target_ts else ''}>Status: {status}</div>
 <div style='margin-top:6px; line-height:1.6;'>
 Buy-in: <strong>{row.get('buy_in','')}</strong><br>
 Starting chips: <strong>{row.get('starting_chips','N/A')}</strong><br>
@@ -736,7 +690,6 @@ Cutoff: <strong>{row.get('cutoff','N/A')}</strong>
 {pre_register_html}
 </div>
 """, unsafe_allow_html=True)
-		st.markdown("""<script>setInterval(function() { var now = Math.floor(Date.now() / 1000); var statuses = document.querySelectorAll('.status'); statuses.forEach(function(el) { var target = el.getAttribute('data-target'); if (target) { var diff = target - now; if (diff > 0) { var hours = Math.floor(diff / 3600); var minutes = Math.floor((diff % 3600) / 60); var seconds = diff % 60; el.textContent = 'Status: Starts in ' + hours.toString().padStart(2,'0') + ':' + minutes.toString().padStart(2,'0') + ':' + seconds.toString().padStart(2,'0'); } else { el.textContent = 'Status: Started'; } } }); }, 1000);</script>""", unsafe_allow_html=True)
 	with tabs[2]:
 		st.header("About Big Slick Social Club")
 		st.write("Big Slick Social Club is an exciting new live poker venue, featuring both tournaments and cash games. We offer a fun and welcoming environment for poker enthusiasts of all levels.")

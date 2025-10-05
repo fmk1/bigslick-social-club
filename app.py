@@ -320,7 +320,7 @@ def main():
 			pass
 
 	# --- Styling: dark poker themed background with blue accents and symbols
-	jackpot_bg_css = "none"  # Removed old background image
+	jackpot_bg_css = "none"
 	st.markdown(
 		f"""
 			<style>
@@ -503,7 +503,13 @@ def main():
 						.stApp {{ font-size: 16px; }}
 					}}
 				.header-title {{ text-align: center; }}
-				@media (max-width: 600px) {{ .header-title {{ font-size: 22px !important; }} .stMarkdown h1 {{ text-align: center !important; }} }}
+				@media (max-width: 600px) {{ 
+					.header-title {{ font-size: 22px !important; }} 
+					.stMarkdown h1 {{ text-align: center !important; font-size: 20px !important; }}
+					.st-be {{ gap: 0.25rem !important; }}
+					.st-be button {{ padding: 6px 8px !important; margin: 0 1px !important; font-size: 12px !important; }}
+					.stImage img {{ width: 100% !important; height: auto !important; object-fit: contain !important; }}
+				}}
 
 				/* Royal Flush Jackpot styling */
 				.jackpot {{
@@ -526,7 +532,7 @@ def main():
 					right: 0;
 					bottom: 0;
 					background-image: {jackpot_bg_css};
-					background-size: cover;
+					background-size: contain;
 					background-position: center;
 					background-repeat: no-repeat;
 					opacity: 0.15;

@@ -308,7 +308,7 @@ def main():
 			pass
 
 	# Load spade image
-	spade_path = "/home/ifeanyi/Downloads/Royal flush of spade.png"
+	spade_path = "images/Royal flush of spade.png"
 	spade_data_uri = None
 	if os.path.exists(spade_path) and PIL_AVAILABLE:
 		try:

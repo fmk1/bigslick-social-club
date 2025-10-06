@@ -566,13 +566,13 @@ def main():
 					color: #FFD700;
 					font-family: 'Playfair Display', serif;
 					text-shadow: 0 0 10px #FFD700, 0 0 20px #FFD700;
-					margin-bottom: 8px;
+					margin-bottom: 2px;
 					font-size: 24px;
 					position: relative;
 					z-index: 1;
 				}}
 				.jackpot-amount {{
-					font-size: 36px;
+					font-size: 48px;
 					font-weight: bold;
 					color: #FFD700;
 					text-shadow: 0 0 15px #FFD700, 0 0 30px #FFD700;

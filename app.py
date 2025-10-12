@@ -100,21 +100,76 @@ def normalize_schedule_df(df: pd.DataFrame) -> pd.DataFrame:
 	if tname_col and tname_col in df.columns:
 		notes_parts.append(df[tname_col].astype(str))
 	if notes_col and notes_col in df.columns:
-		notes_parts.append(df[notes_col].astype(str))
+		# Only add notes if they're not NaN
+		notes_series = df[notes_col].astype(str)
+		notes_series = notes_series.replace('nan', '')
+		notes_parts.append(notes_series)
 	if notes_parts:
-		# join columns with separator
+		# join columns with separator, but only if both parts have content
 		out['notes'] = notes_parts[0].fillna('')
 		for part in notes_parts[1:]:
-			out['notes'] = out['notes'].str.strip() + ' — ' + part.fillna('').str.strip()
+			# Only add separator and second part if the second part is not empty/nan
+			mask = (part.fillna('').str.strip() != '') & (part.fillna('').str.strip() != 'nan')
+			out['notes'] = out['notes'].where(~mask, out['notes'].str.strip() + ' — ' + part.fillna('').str.strip())
 	else:
 		out['notes'] = df.get('Notes', df.get('notes', ''))
+	
+	# Handle Add-on column separately if it exists
+	addon_col = find(["add-on", "add on", "addon"]) or find(["Add-on", "Add-on", "Addon"])
+	if addon_col and addon_col in df.columns:
+		out['add_on'] = df[addon_col].fillna('')
+	else:
+		out['add_on'] = ''
 
 	# ensure columns exist
-	expected = ["day", "time", "buy_in", "rebuy", "starting_chips", "cutoff", "notes"]
+	expected = ["day", "time", "buy_in", "rebuy", "starting_chips", "cutoff", "notes", "add_on"]
 	for c in expected:
 		if c not in out.columns:
 			out[c] = ''
 	return out[expected]
+
+
+def load_leaderboard_from_gsheet(sheet_id: str, worksheet_name: str = "Leaderboard", service_account_path: str | None = None) -> pd.DataFrame:
+	"""Load leaderboard data from a specific worksheet in a Google Sheet.
+	
+	First tries to use CSV export URL for public sheets, falls back to gspread if needed.
+	"""
+	# Try CSV export URL first (works for public sheets)
+	try:
+		# Construct CSV export URL for the specific worksheet
+		csv_url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/gviz/tq?tqx=out:csv&sheet={worksheet_name}"
+		df = pd.read_csv(csv_url)
+		# Clean up the dataframe
+		df = df.dropna(axis=1, how='all')  # Remove empty columns
+		df = df.dropna(how='all')  # Remove empty rows
+		print(f"Successfully loaded {len(df)} rows from CSV export")
+		return df
+	except Exception as csv_error:
+		print(f"CSV export failed: {csv_error}")
+		
+		# Only try gspread if it's available
+		if not GSPREAD_AVAILABLE:
+			# Return empty dataframe instead of showing warning
+			print("Gspread not available, returning empty dataframe")
+			return pd.DataFrame()
+		
+		try:
+			# authorize
+			if service_account_path:
+				gc = gspread.service_account(filename=service_account_path)
+			else:
+				gc = gspread.oauth()
+			sh = gc.open_by_key(sheet_id)
+			ws = sh.worksheet(worksheet_name)
+			df = get_as_dataframe(ws, evaluate_formulas=True, skip_blank_rows=True)
+			# drop fully-empty columns that gspread may create
+			df = df.dropna(axis=1, how='all')
+			# remove empty rows
+			df = df.dropna(how='all')
+			return df
+		except Exception as e:
+			st.error(f"Failed loading leaderboard from Google Sheet: {e}")
+			return pd.DataFrame()
 
 
 def load_schedule_from_gsheet(sheet_id: str, service_account_path: str | None = None) -> pd.DataFrame:
@@ -621,7 +676,7 @@ def main():
 	today_name = datetime.now(timezone.utc).strftime("%A")
 
 	# Navigation tabs below header
-	tabs = st.tabs(["Home", "Poker Schedule", "About", "Contact"])
+	tabs = st.tabs(["Home", "Poker Schedule", "Series", "About", "Contact"])
 
 	with tabs[0]:
 		# Home: Compact schedule preview
@@ -656,14 +711,28 @@ def main():
 							if day == today_name and GOOGLE_FORM_URL:
 								pre_register_html = f'<a href="{GOOGLE_FORM_URL}" target="_blank"><button style="background: linear-gradient(90deg,#003366,#004080); color: #ffffff; border: 2px solid #FFD700; padding: 10px 20px; border-radius: 20px; font-weight:700; box-shadow: 0 4px 12px rgba(0,0,0,0.3); transition: all 0.2s ease; position: relative; overflow: hidden; margin-top: 10px;">Pre-register</button></a>'
 							
+							# Process notes and extract add-on info
+							notes_value = row.get('notes', '')
+							if pd.isna(notes_value) or notes_value == 'nan':
+								notes_value = ''
+							
+							# Get add-on information from the separate add_on column
+							add_on_info = row.get('add_on', '')
+							if pd.isna(add_on_info) or add_on_info == 'nan':
+								add_on_info = ''
+							
+							# Use notes_value as tournament name (it should be just the tournament name now)
+							tournament_name = notes_value.strip() if notes_value else ''
+							
+							
 							st.markdown(f"""
 <div class="tournament-card">
-<div style='font-size:18px; font-weight:700'>🎴 {row.get('time', '')} — {row.get('notes','')}</div>
+<div style='font-size:18px; font-weight:700'>🎴 {row.get('time', '')} — {tournament_name}</div>
 <div style='margin-top:6px; line-height:1.6;'>
 Buy-in: <strong>{row.get('buy_in','')}</strong><br>
 Starting chips: <strong>{row.get('starting_chips','N/A')}</strong><br>
 Re-buy: <strong>{row.get('rebuy','No')}</strong><br>
-Cutoff: <strong>{row.get('cutoff','N/A')}</strong>
+{'Add-on: <strong>' + add_on_info + '</strong><br>' if add_on_info else ''}Cutoff: <strong>{row.get('cutoff','N/A')}</strong>
 </div>
 {pre_register_html}
 </div>
@@ -684,24 +753,119 @@ Cutoff: <strong>{row.get('cutoff','N/A')}</strong>
 						if day == today_name and GOOGLE_FORM_URL:
 							pre_register_html = f'<a href="{GOOGLE_FORM_URL}" target="_blank"><button style="background: linear-gradient(90deg,#003366,#004080); color: #ffffff; border: 2px solid #FFD700; padding: 10px 20px; border-radius: 20px; font-weight:700; box-shadow: 0 4px 12px rgba(0,0,0,0.3); transition: all 0.2s ease; position: relative; overflow: hidden; margin-top: 10px;">Pre-register</button></a>'
 						
-						st.markdown(f"""
+						# Process notes and extract add-on info
+					notes_value = row.get('notes', '')
+					if pd.isna(notes_value) or notes_value == 'nan':
+						notes_value = ''
+					
+					# Get add-on information from the separate add_on column
+					add_on_info = row.get('add_on', '')
+					if pd.isna(add_on_info) or add_on_info == 'nan':
+						add_on_info = ''
+					
+					# Use notes_value as tournament name (it should be just the tournament name now)
+					tournament_name = notes_value.strip() if notes_value else ''
+					
+					
+					st.markdown(f"""
 <div class="tournament-card">
-<div style='font-size:18px; font-weight:700'>🎴 {day}, {date_str} - {row.get('time', '')} — {row.get('notes','')}</div>
+<div style='font-size:18px; font-weight:700'>🎴 {day}, {date_str} - {row.get('time', '')} — {tournament_name}</div>
 <div style='margin-top:6px; line-height:1.6;'>
 Buy-in: <strong>{row.get('buy_in','')}</strong><br>
 Starting chips: <strong>{row.get('starting_chips','N/A')}</strong><br>
 Re-buy: <strong>{row.get('rebuy','No')}</strong><br>
-Cutoff: <strong>{row.get('cutoff','N/A')}</strong>
+{'Add-on: <strong>' + add_on_info + '</strong><br>' if add_on_info else ''}Cutoff: <strong>{row.get('cutoff','N/A')}</strong>
 </div>
 {pre_register_html}
 </div>
 """, unsafe_allow_html=True)
 	with tabs[2]:
+		# Series: Player Rankings/Leaderboard
+		st.header("🏆 Player Rankings Leaderboard")
+		
+		# Load leaderboard data from Google Sheet
+		leaderboard_sheet_id = "12x_dVrPBrbaETwI2G1EedcsLdRw3rNv0JD0G75MKzrg"
+		leaderboard_df = load_leaderboard_from_gsheet(leaderboard_sheet_id, "Leaderboard")
+		
+		if not leaderboard_df.empty:
+			st.markdown("""
+			<div style="text-align: center; margin-bottom: 20px;">
+				<p style="font-size: 18px; color: #FFD700;">🎯 Current Tournament Series Standings</p>
+			</div>
+			""", unsafe_allow_html=True)
+			
+			# Display the leaderboard as simple lines
+			for i, (_, row) in enumerate(leaderboard_df.iterrows()):
+				rank = i + 1
+				
+				# Get rank styling
+				if rank == 1:
+					rank_color = "#FFD700"  # Gold
+				elif rank == 2:
+					rank_color = "#C0C0C0"  # Silver
+				elif rank == 3:
+					rank_color = "#CD7F32"  # Bronze
+				else:
+					rank_color = "#87CEEB"  # Light blue
+				
+				# Create player line
+				player_name = row.iloc[0] if len(row) > 0 else "Unknown Player"
+				
+				# Skip if the first column is just an index number - look for actual player name
+				if len(leaderboard_df.columns) > 1 and str(player_name).isdigit():
+					# If first column is numeric index, use second column as player name
+					player_name = row.iloc[1] if len(row) > 1 else "Unknown Player"
+					stats_start_index = 2
+				else:
+					stats_start_index = 1
+				
+				# Try to get additional stats if available
+				stats_text = ""
+				if len(row) > stats_start_index:
+					for j, value in enumerate(row.iloc[stats_start_index:], stats_start_index):
+						if pd.notna(value) and str(value).strip():
+							column_name = leaderboard_df.columns[j] if j < len(leaderboard_df.columns) else f"Stat {j}"
+							# Skip the "Last Updated" column
+							if "last updated" not in column_name.lower():
+								stats_text += f"{column_name}: {value} | "
+				
+				# Remove trailing separator
+				stats_text = stats_text.rstrip(" | ")
+				
+				st.markdown(f"""
+				<div style="border-bottom: 1px solid rgba(255,215,0,0.3); padding: 8px 0; margin-bottom: 4px; font-family: 'Courier New', monospace;">
+					<span style="color: {rank_color}; font-weight: 700; margin-right: 8px;">#{rank}</span>
+					<span style="color: #ffffff; font-weight: 600; display: inline-block; width: 80px;">{player_name}</span>
+					<span style="color: #cccccc; font-size: 14px;">{stats_text}</span>
+				</div>
+				""", unsafe_allow_html=True)
+		else:
+			# Show message when no data is available
+			st.markdown("""
+			<div style="text-align: center; margin-bottom: 20px;">
+				<p style="font-size: 18px; color: #FFD700;">🎯 Player Rankings Leaderboard</p>
+			</div>
+			""", unsafe_allow_html=True)
+			
+			st.info("📊 **Leaderboard Loading**: The player rankings are currently being updated. Please check back soon for the latest standings!")
+			
+		# Add some additional info
+		st.markdown("""
+		<div style="text-align: center; margin-top: 30px; padding: 20px; background: rgba(0,51,102,0.2); border-radius: 12px; border: 1px solid #FFD700;">
+			<p style="color: #FFD700; font-size: 16px; margin-bottom: 10px;">🎮 <strong>How Rankings Work</strong></p>
+			<p style="color: #cccccc; font-size: 14px; line-height: 1.6;">
+				Rankings are updated after each tournament based on performance, consistency, and participation. 
+				Compete in our weekly tournaments to climb the leaderboard and earn your spot among the top players!
+			</p>
+		</div>
+		""", unsafe_allow_html=True)
+
+	with tabs[3]:
 		st.header("About Big Slick Social Club")
 		st.write("Big Slick Social Club is an exciting new live poker venue, featuring both tournaments and cash games. We offer a fun and welcoming environment for poker enthusiasts of all levels.")
 		st.write("Our weekly tournament schedule includes a variety of events to keep things interesting. Join us for some great poker action!")
 
-	with tabs[3]:
+	with tabs[4]:
 		st.header("Contact Us")
 		st.markdown('<a href="https://maps.google.com/?q=5825 Jackman Rd, Toledo, OH 43613" target="_blank" style="color:#FFD700; text-decoration:none;">📍 5825 Jackman Rd, Toledo, OH 43613</a>', unsafe_allow_html=True)
 		st.write("Follow us on:")
